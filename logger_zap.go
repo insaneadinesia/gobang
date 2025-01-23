@@ -7,21 +7,24 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func NewZapLogger() *zap.Logger {
+func NewZapLogger(opt Option) *zap.Logger {
+	var outputPaths, errorOutputPaths []string
+
+	// Default path will be show on console
+	if opt.IsEnable {
+		outputPaths = []string{"stdout"}
+		errorOutputPaths = []string{"stderr"}
+	}
+
 	cfg := zap.Config{
 		Level:             zap.NewAtomicLevelAt(zap.InfoLevel),
 		Development:       true,
 		DisableCaller:     true,
-		DisableStacktrace: true,
-		Sampling:          nil,
+		DisableStacktrace: !opt.EnableStackTrace,
 		Encoding:          "json",
 		EncoderConfig:     getEncoderConfig(),
-		OutputPaths: []string{
-			"stdout",
-		},
-		ErrorOutputPaths: []string{
-			"stderr",
-		},
+		OutputPaths:       outputPaths,
+		ErrorOutputPaths:  errorOutputPaths,
 	}
 
 	return zap.Must(cfg.Build())
