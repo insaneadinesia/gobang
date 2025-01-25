@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+var Log Logger
+
 // Logger is an interface for logging messages with context and fields.
 type Logger interface {
 	Debug(ctx context.Context, message string, fields ...interface{})

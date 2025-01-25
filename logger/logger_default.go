@@ -26,11 +26,16 @@ func NewLogger(opt Option) Logger {
 		maskingFields[fieldName] = true
 	}
 
-	return &defaultLogger{
+	logger := &defaultLogger{
 		zapLogger:     NewZapLogger(opt),
 		enableMasking: opt.EnableMaskingFields,
 		maskingFields: maskingFields,
 	}
+
+	// Assign to global variable, so it can be called in all file without injecting depedency
+	Log = logger
+
+	return logger
 }
 
 // Debug logs a debug message with context and fields.
