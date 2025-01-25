@@ -7,15 +7,18 @@ import (
 
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"google.golang.org/protobuf/proto"
 )
 
+// defaultLogger is a logger implementation using zap.
 type defaultLogger struct {
 	zapLogger     *zap.Logger
 	enableMasking bool
 	maskingFields map[string]bool
 }
 
+// NewLogger creates a new logger based on provided options.
 func NewLogger(opt Option) Logger {
 	// Assign masking fields to global variable
 	maskingFields := make(map[string]bool)
@@ -30,66 +33,44 @@ func NewLogger(opt Option) Logger {
 	}
 }
 
+// Debug logs a debug message with context and fields.
 func (d *defaultLogger) Debug(ctx context.Context, message string, details ...interface{}) {
-	zapLogs := []zap.Field{
-		zap.String("level", "debug"),
-	}
-
-	traceContextFields := TraceContext(ctx)
-
-	fields := d.formatToField(details...)
-	zapLogs = append(zapLogs, d.formatLogs(ctx, fields...)...)
-	d.zapLogger.With(traceContextFields...).Debug(message, zapLogs...)
+	d.log(ctx, zap.DebugLevel, message, details...)
 }
 
+// Info logs an informational message with context and fields.
 func (d *defaultLogger) Info(ctx context.Context, message string, details ...interface{}) {
-	zapLogs := []zap.Field{}
-
-	traceContextFields := TraceContext(ctx)
-
-	fields := d.formatToField(details...)
-	zapLogs = append(zapLogs, d.formatLogs(ctx, fields...)...)
-	d.zapLogger.With(traceContextFields...).Info(message, zapLogs...)
+	d.log(ctx, zap.InfoLevel, message, details...)
 }
 
+// Warn logs a warning message with context and fields.
 func (d *defaultLogger) Warn(ctx context.Context, message string, details ...interface{}) {
-	zapLogs := []zap.Field{}
-
-	traceContextFields := TraceContext(ctx)
-
-	fields := d.formatToField(details...)
-	zapLogs = append(zapLogs, d.formatLogs(ctx, fields...)...)
-	d.zapLogger.With(traceContextFields...).Warn(message, zapLogs...)
+	d.log(ctx, zap.WarnLevel, message, details...)
 }
 
+// Error logs an error message with context and fields.
 func (d *defaultLogger) Error(ctx context.Context, message string, details ...interface{}) {
-	zapLogs := []zap.Field{}
-
-	traceContextFields := TraceContext(ctx)
-
-	fields := d.formatToField(details...)
-	zapLogs = append(zapLogs, d.formatLogs(ctx, fields...)...)
-	d.zapLogger.With(traceContextFields...).Error(message, zapLogs...)
+	d.log(ctx, zap.ErrorLevel, message, details...)
 }
 
+// Fatal logs a fatal message with context and fields and exits the program.
 func (d *defaultLogger) Fatal(ctx context.Context, message string, details ...interface{}) {
-	zapLogs := []zap.Field{}
-
-	traceContextFields := TraceContext(ctx)
-
-	fields := d.formatToField(details...)
-	zapLogs = append(zapLogs, d.formatLogs(ctx, fields...)...)
-	d.zapLogger.With(traceContextFields...).Fatal(message, zapLogs...)
+	d.log(ctx, zap.FatalLevel, message, details...)
 }
 
+// Panic logs a panic message with context and fields and panics.
 func (d *defaultLogger) Panic(ctx context.Context, message string, details ...interface{}) {
+	d.log(ctx, zap.PanicLevel, message, details...)
+}
+
+func (d *defaultLogger) log(ctx context.Context, level zapcore.Level, message string, details ...interface{}) {
 	zapLogs := []zap.Field{}
 
 	traceContextFields := TraceContext(ctx)
 
 	fields := d.formatToField(details...)
 	zapLogs = append(zapLogs, d.formatLogs(ctx, fields...)...)
-	d.zapLogger.With(traceContextFields...).Panic(message, zapLogs...)
+	d.zapLogger.With(traceContextFields...).Log(level, message, zapLogs...)
 }
 
 func (d *defaultLogger) formatToField(details ...interface{}) (logRecord []Field) {
@@ -132,16 +113,15 @@ func (d *defaultLogger) formatLog(key string, msg interface{}) (logRecord zap.Fi
 		return
 	}
 
-	// Try to convert the proto message into json
+	// Detect the message data type then convert it to json if possible
 	p, ok := msg.(proto.Message)
 	if ok {
 		b, _ := json.Marshal(p)
 
 		var data interface{}
+
+		// if error happened, just print the original message
 		if err := json.Unmarshal(b, &data); err != nil {
-			// Fallback: Just print the message
-			// The message format should be like:
-			// "name:\"mamatosai\"  id:1234  email:\"Rachmat Adi Prakoso\""
 			logRecord = zap.Any(key, p)
 			return
 		}
@@ -150,8 +130,7 @@ func (d *defaultLogger) formatLog(key string, msg interface{}) (logRecord zap.Fi
 		return
 	}
 
-	// Try to convert the proto message into json
-	// Incase the message is json stringify
+	// Detect the message data type then convert it to json if possible
 	str, ok := msg.(string)
 	if ok {
 		var data interface{}
@@ -194,8 +173,7 @@ func (d *defaultLogger) maskData(input interface{}) interface{} {
 			}
 		}
 	case reflect.Struct:
-		// Convert to map string so it can be masking
-		// Somehow struct type is immutable
+		// Convert to map string so it can be masking. Somehow struct type is immutable
 		var data map[string]interface{}
 		byData, _ := json.Marshal(input)
 		json.Unmarshal(byData, &data)

@@ -7,10 +7,11 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+// NewZapLogger creates a new zap logger based on the provided options.
 func NewZapLogger(opt Option) *zap.Logger {
 	var outputPaths, errorOutputPaths []string
 
-	// Default path will be show on console
+	// Default path will be shown on console
 	if opt.IsEnable {
 		outputPaths = []string{"stdout"}
 		errorOutputPaths = []string{"stderr"}
@@ -30,6 +31,7 @@ func NewZapLogger(opt Option) *zap.Logger {
 	return zap.Must(cfg.Build())
 }
 
+// getEncoderConfig returns the encoder configuration for zap.
 func getEncoderConfig() zapcore.EncoderConfig {
 	cfg := zap.NewProductionEncoderConfig()
 	cfg.TimeKey = "xtime"
@@ -40,6 +42,7 @@ func getEncoderConfig() zapcore.EncoderConfig {
 	return cfg
 }
 
+// timeEncoder formats the time for zap logs.
 func timeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 	enc.AppendString(t.Format("2006-01-02 15:04:05.999"))
 }

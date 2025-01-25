@@ -4,6 +4,7 @@ import (
 	"context"
 )
 
+// Logger is an interface for logging messages with context and fields.
 type Logger interface {
 	Debug(ctx context.Context, message string, fields ...interface{})
 	Info(ctx context.Context, message string, fields ...interface{})
@@ -13,31 +14,36 @@ type Logger interface {
 	Panic(ctx context.Context, message string, fields ...interface{})
 }
 
+// Field represents a key-value pair for logging fields.
 type Field struct {
 	Key string
 	Val interface{}
 }
 
+// ctxKeyLogger is a type for context keys to avoid collisions.
 type ctxKeyLogger struct{}
 
+// ctxKey is the context key for the logger context.
 var ctxKey = ctxKeyLogger{}
 
+// Context holds contextual information for logging.
 type Context struct {
-	ServiceName    string                 `json:"_app_name"`
-	ServiceVersion string                 `json:"_app_version"`
-	ServicePort    int                    `json:"_app_port"`
-	Tag            string                 `json:"_app_tag"`
-	ReqMethod      string                 `json:"_app_method"`
-	ReqURI         string                 `json:"_app_uri"`
-	ReqHeader      string                 `json:"_app_request_header"`
-	ReqBody        interface{}            `json:"_app_request"`
-	RespBody       interface{}            `json:"_app_response"`
-	RespCode       int                    `json:"_app_response_code,omitempty"`
-	Error          string                 `json:"_app_error,omitempty"`
-	AdditionalData map[string]interface{} `json:"_app_data,omitempty"`
-	RespTime       string                 `json:"_app_exec_time,omitempty"`
+	ServiceName    string                 `json:"app_name"`
+	ServiceVersion string                 `json:"app_version"`
+	ServicePort    int                    `json:"app_port"`
+	Tag            string                 `json:"app_tag"`
+	ReqMethod      string                 `json:"app_method"`
+	ReqURI         string                 `json:"app_uri"`
+	ReqHeader      string                 `json:"app_request_header"`
+	ReqBody        interface{}            `json:"app_request"`
+	RespBody       interface{}            `json:"app_response"`
+	RespCode       int                    `json:"app_response_code,omitempty"`
+	Error          string                 `json:"app_error,omitempty"`
+	AdditionalData map[string]interface{} `json:"app_data,omitempty"`
+	RespTime       string                 `json:"app_exec_time,omitempty"`
 }
 
+// InjectCtx injects the logger context into the parent context.
 func InjectCtx(parent context.Context, ctx Context) context.Context {
 	if parent == nil {
 		return InjectCtx(context.Background(), ctx)
@@ -46,6 +52,7 @@ func InjectCtx(parent context.Context, ctx Context) context.Context {
 	return context.WithValue(parent, ctxKey, ctx)
 }
 
+// ExtractCtx extracts the logger context from the given context.
 func ExtractCtx(ctx context.Context) Context {
 	if ctx == nil {
 		return Context{}
