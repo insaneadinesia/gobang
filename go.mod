@@ -1,4 +1,4 @@
-module github.com/insaneadinesia/logger
+module github.com/insaneadinesia/go-logger
 
 go 1.23.4
 
