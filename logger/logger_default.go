@@ -68,6 +68,15 @@ func (d *defaultLogger) Panic(ctx context.Context, message string, details ...in
 	d.log(ctx, zap.PanicLevel, message, details...)
 }
 
+func (d *defaultLogger) TDR(ctx context.Context) {
+	zapLogs := []zap.Field{}
+
+	traceContextFields := TraceContext(ctx)
+
+	zapLogs = append(zapLogs, d.formatTDRLog(ctx)...)
+	d.zapLogger.With(traceContextFields...).Log(zap.InfoLevel, "TDR", zapLogs...)
+}
+
 func (d *defaultLogger) log(ctx context.Context, level zapcore.Level, message string, details ...interface{}) {
 	zapLogs := []zap.Field{}
 
@@ -110,6 +119,33 @@ func (d *defaultLogger) formatLogs(ctx context.Context, fields ...Field) (logRec
 	}
 
 	return
+}
+
+func (d *defaultLogger) formatTDRLog(ctx context.Context) (logRecord []zap.Field) {
+	ctxVal := ExtractCtx(ctx)
+
+	// Add global value from context that must be exist on all logs!
+	logRecord = []zap.Field{
+		zap.String("app_name", ctxVal.ServiceName),
+		zap.String("app_version", ctxVal.ServiceVersion),
+		zap.Int("app_port", ctxVal.ServicePort),
+		zap.String("app_tag", ctxVal.Tag),
+		zap.String("app_method", ctxVal.ReqMethod),
+		zap.String("app_uri", ctxVal.ReqURI),
+		zap.Int("app_response_code", ctxVal.RespCode),
+		zap.String("app_exec_time", ctxVal.RespTime),
+	}
+
+	logRecord = append(logRecord, d.formatLog("app_request_header", ctxVal.ReqHeader))
+	logRecord = append(logRecord, d.formatLog("app_request", ctxVal.ReqBody))
+	logRecord = append(logRecord, d.formatLog("app_response", ctxVal.RespBody))
+
+	// Add additional data that available across all log, such as user_id
+	if ctxVal.AdditionalData != nil {
+		logRecord = append(logRecord, zap.Any("app_data", ctxVal.AdditionalData))
+	}
+
+	return logRecord
 }
 
 func (d *defaultLogger) formatLog(key string, msg interface{}) (logRecord zap.Field) {

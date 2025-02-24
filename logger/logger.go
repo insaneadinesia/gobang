@@ -14,6 +14,7 @@ type Logger interface {
 	Error(ctx context.Context, message string, fields ...interface{})
 	Fatal(ctx context.Context, message string, fields ...interface{})
 	Panic(ctx context.Context, message string, fields ...interface{})
+	TDR(ctx context.Context)
 }
 
 // Field represents a key-value pair for logging fields.
@@ -36,7 +37,7 @@ type Context struct {
 	Tag            string                 `json:"app_tag"`
 	ReqMethod      string                 `json:"app_method"`
 	ReqURI         string                 `json:"app_uri"`
-	ReqHeader      string                 `json:"app_request_header"`
+	ReqHeader      interface{}            `json:"app_request_header"`
 	ReqBody        interface{}            `json:"app_request"`
 	RespBody       interface{}            `json:"app_response"`
 	RespCode       int                    `json:"app_response_code,omitempty"`
