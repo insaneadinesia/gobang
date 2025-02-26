@@ -52,7 +52,6 @@ func main() {
 		ServicePort:    9000,
 		ReqMethod:      "POST",
 		ReqURI:         "/test",
-		ReqBody:        reqBody,
 	}
 
 	ctx = logger.InjectCtx(ctx, ctxLogger)
