@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"strings"
 
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
@@ -21,4 +22,21 @@ func TraceContext(ctx context.Context) []zapcore.Field {
 	}
 
 	return fields
+}
+
+func IsSkipPrintLog(msg string) bool {
+	skipedContentType := []string{
+		"Content-Type: application/",
+		"Content-Type: audio/",
+		"Content-Type: image/",
+		"Content-Type: video/",
+	}
+
+	for _, contentType := range skipedContentType {
+		if strings.Contains(msg, contentType) {
+			return true
+		}
+	}
+
+	return false
 }

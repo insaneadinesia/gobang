@@ -176,8 +176,36 @@ func (d *defaultLogger) formatLog(key string, msg interface{}) (logRecord zap.Fi
 	if ok {
 		var data interface{}
 		if err := json.Unmarshal([]byte(str), &data); err != nil {
-			// Fallback: Just print the original message
-			logRecord = zap.Any(key, str)
+			if IsSkipPrintLog(str) {
+				// Replace string if data is unsupported to log
+				logRecord = zap.Any(key, "<unsupported data>")
+			} else {
+				// Fallback: Just print the original message
+				logRecord = zap.Any(key, str)
+			}
+
+			return
+		}
+
+		logRecord = zap.Any(key, d.maskData(data))
+		return
+	}
+
+	// Detect the message data type then convert it to json if possible
+	by, ok := msg.([]byte)
+	if ok {
+		str := string(by)
+
+		var data interface{}
+		if err := json.Unmarshal([]byte(str), &data); err != nil {
+			if IsSkipPrintLog(str) {
+				// Replace string if data is unsupported to log
+				logRecord = zap.Any(key, "<unsupported data>")
+			} else {
+				// Fallback: Just print the original message
+				logRecord = zap.Any(key, str)
+			}
+
 			return
 		}
 
