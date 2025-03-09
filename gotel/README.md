@@ -1,4 +1,4 @@
-# Goel - OpenTelemetry Integration for Go
+# Gotel - OpenTelemetry Integration for Go
 
 A lightweight OpenTelemetry wrapper providing streamlined configuration for common tracing setups.
 
