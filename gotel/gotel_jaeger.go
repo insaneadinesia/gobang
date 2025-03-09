@@ -10,7 +10,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
 )
 
-func NewOtelWithJeagerExporter(serviceName string, opt OtelWithJeagerOption) Gotel {
+func NewOtelWithJaegerExporter(serviceName string, opt OtelWithJaegerOption) Gotel {
 	ctx := context.Background()
 
 	traceOpts := []otlptracehttp.Option{

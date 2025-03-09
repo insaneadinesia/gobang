@@ -1,6 +1,6 @@
 package gotel
 
-type OtelWithJeagerOption struct {
+type OtelWithJaegerOption struct {
 	Endpoint string
 	IsSecure bool
 }
