@@ -4,8 +4,6 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-var Otel Gotel
-
 type Gotel interface {
 	DefaultTracer() trace.Tracer
 	DefaultTracerProvider() trace.TracerProvider

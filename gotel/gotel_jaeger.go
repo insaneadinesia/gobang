@@ -45,7 +45,7 @@ func NewOtelWithJeagerExporter(serviceName string, opt OtelWithJeagerOption) Got
 	}
 
 	// Set to global for easy to use every where
-	Otel = gotel
+	_gotel = gotel
 
 	return gotel
 }

@@ -33,7 +33,7 @@ func NewOtelWithStdoutExporter(serviceName string) Gotel {
 	}
 
 	// Set global variable
-	Otel = gotel
+	_gotel = gotel
 
 	return gotel
 }
