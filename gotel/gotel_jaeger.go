@@ -5,6 +5,7 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
@@ -39,9 +40,17 @@ func NewOtelWithJaegerExporter(serviceName string, opt OtelWithJaegerOption) Got
 
 	otel.SetTracerProvider(traceProvider)
 
+	// Set the propagator
+	prop := propagation.NewCompositeTextMapPropagator(
+		propagation.TraceContext{},
+		propagation.Baggage{},
+	)
+	otel.SetTextMapPropagator(prop)
+
 	gotel := &gotel{
 		tracer:         traceProvider.Tracer(serviceName),
 		tracerProvider: traceProvider,
+		propagator:     prop,
 	}
 
 	// Set to global for easy to use every where
